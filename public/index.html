@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Diagnostic Tool | OS Command Injection Lab</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="header-content">
+        <div class="title-group">
+          <h1>Network Diagnostic Tool</h1>
+          <p class="subtitle">Academic Security Lab: In-band OS Command Injection vs Parameterized Execution</p>
+        </div>
+        <div class="badge-group">
+          <span id="platform-badge" class="badge badge-platform">Detecting OS...</span>
+          <span id="server-badge" class="badge badge-server">Server: 127.0.0.1</span>
+          <span id="lab-badge" class="badge badge-status">Checking Lab Mode...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Lab Mode Warning Banner (Shown when Vulnerable Mode is active) -->
+    <div id="lab-warning-banner" class="alert-banner warning hidden" role="alert">
+      <div class="alert-icon">&#9888;</div>
+      <div class="alert-body">
+        <strong>EDUCATIONAL LAB ENVIRONMENT ACTIVE:</strong>
+        Vulnerable Mode is enabled. The application is running in an intentional security demonstration mode on <code>127.0.0.1</code>. Do not expose this port to external networks.
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <main class="main-content">
+      <!-- Input & Configuration Card -->
+      <section class="card diagnostic-card">
+        <h2 class="card-title">Diagnostic Configuration</h2>
+        
+        <form id="diagnostic-form">
+          <!-- Mode Selection -->
+          <div class="form-group">
+            <label class="form-label">Execution Mode & Implementation</label>
+            <div class="mode-selector-grid">
+              <!-- Secured Mode Card -->
+              <label class="mode-card" for="mode-secured" id="mode-secured-label">
+                <input type="radio" id="mode-secured" name="executionMode" value="secured" checked>
+                <div class="mode-card-content">
+                  <div class="mode-card-header">
+                    <span class="mode-title">Secured Mode</span>
+                    <span class="pill pill-success">Recommended</span>
+                  </div>
+                  <div class="mode-meta"><code>child_process.execFile()</code></div>
+                  <p class="mode-description">
+                    Executes binary directly with an argument vector array and <code>shell: false</code>. Shell metacharacters are treated as literal strings.
+                  </p>
+                </div>
+              </label>
+
+              <!-- Vulnerable Mode Card -->
+              <label class="mode-card" for="mode-vulnerable" id="mode-vulnerable-label">
+                <input type="radio" id="mode-vulnerable" name="executionMode" value="vulnerable">
+                <div class="mode-card-content">
+                  <div class="mode-card-header">
+                    <span class="mode-title">Vulnerable Mode</span>
+                    <span id="vuln-pill" class="pill pill-danger">Lab Only</span>
+                  </div>
+                  <div class="mode-meta"><code>child_process.exec()</code></div>
+                  <p class="mode-description">
+                    Concatenates input into a command string passed to the system shell (<code>cmd.exe</code> / <code>/bin/sh</code>). Vulnerable to command chaining.
+                  </p>
+                  <p id="vuln-disabled-hint" class="mode-hint hidden">
+                    Disabled in normal mode. Start server with <code>npm run lab</code> to unlock.
+                  </p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Target Hostname / IP Input -->
+          <div class="form-group">
+            <div class="label-with-helper">
+              <label for="target-input" class="form-label">Target Hostname or IP Address</label>
+              <span class="helper-text">Single ping packet executed server-side</span>
+            </div>
+            <div class="input-row">
+              <input 
+                type="text" 
+                id="target-input" 
+                name="target" 
+                class="text-input" 
+                placeholder="e.g. 127.0.0.1 or example.com" 
+                maxlength="256"
+                required
+                autocomplete="off"
+                spellcheck="false"
+              />
+              <button type="submit" id="submit-btn" class="btn btn-primary">
+                <span id="btn-text">Run Diagnostic</span>
+                <span id="btn-spinner" class="spinner hidden"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Test Payload Buttons -->
+          <div class="form-group presets-group">
+            <span class="presets-label">Academic Demonstration Presets:</span>
+            <div class="presets-buttons">
+              <button type="button" class="btn btn-preset" data-payload="127.0.0.1">
+                Normal: <code>127.0.0.1</code>
+              </button>
+              <button type="button" class="btn btn-preset" data-payload="127.0.0.1 & whoami">
+                Windows Exploit: <code>127.0.0.1 & whoami</code>
+              </button>
+              <button type="button" class="btn btn-preset" data-payload="127.0.0.1; whoami">
+                POSIX Exploit: <code>127.0.0.1; whoami</code>
+              </button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Terminal Output Panel -->
+      <section class="card output-card">
+        <div class="terminal-header">
+          <div class="terminal-title-group">
+            <div class="terminal-dots">
+              <span class="dot dot-red"></span>
+              <span class="dot dot-yellow"></span>
+              <span class="dot dot-green"></span>
+            </div>
+            <span class="terminal-title">Diagnostic Terminal Output</span>
+          </div>
+          <div class="terminal-metadata" id="terminal-metadata">
+            <span id="meta-mode" class="meta-tag">Ready</span>
+            <span id="meta-duration" class="meta-tag hidden">0ms</span>
+            <span id="meta-exit" class="meta-tag hidden">Exit: 0</span>
+          </div>
+        </div>
+
+        <!-- Command Specification Box -->
+        <div class="command-spec-box" id="command-spec-box">
+          <span class="spec-label">Executed Call:</span>
+          <code id="command-spec-text" class="spec-code">No command executed yet. Enter a target and click "Run Diagnostic".</code>
+        </div>
+
+        <!-- Terminal Output Viewport -->
+        <div class="terminal-viewport">
+          <pre id="terminal-output" class="terminal-text"><span class="terminal-placeholder">System ready. Select a mode, enter a target, and execute a diagnostic test.
+Output from the server-side process will be captured and displayed here in-band.</span></pre>
+        </div>
+
+        <!-- Security Observation & Analysis Callout -->
+        <div id="security-analysis-box" class="security-analysis hidden">
+          <div class="analysis-header">
+            <span class="analysis-icon" id="analysis-icon">&#128269;</span>
+            <span class="analysis-title" id="analysis-title">Security Analysis</span>
+          </div>
+          <div class="analysis-content" id="analysis-content">
+            <!-- Dynamically populated analysis -->
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Educational Footer -->
+    <footer class="app-footer">
+      <div class="footer-content">
+        <p>Cyber Security Lab Assignment &mdash; OS Command Injection (In-band) vs Parameterized Execution Mitigation</p>
+        <p class="footer-subtext">Restricted to Localhost Binding (<code>127.0.0.1</code>) &bull; Academic Demonstrations with Harmless System Commands Only (<code>whoami</code>)</p>
+      </div>
+    </footer>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

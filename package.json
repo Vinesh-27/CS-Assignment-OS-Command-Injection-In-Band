@@ -1,0 +1,28 @@
+{
+  "name": "os-command-injection-lab",
+  "version": "1.0.0",
+  "description": "College Cyber Security Lab: In-band OS Command Injection and Parameterized Execution Mitigation",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "lab": "node -e \"process.env.LAB_MODE='true'; const { startServer } = require('./server'); startServer();\"",
+    "test": "node --test"
+  },
+  "keywords": [
+    "cybersecurity",
+    "command-injection",
+    "web-security",
+    "appsec",
+    "in-band",
+    "node",
+    "express"
+  ],
+  "author": "Cyber Security Student",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
