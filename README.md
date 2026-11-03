@@ -32,9 +32,7 @@ The application implements a realistic **Network Diagnostic Tool** providing sid
 - [8. Additional Defense-in-Depth Mitigations](#8-additional-defense-in-depth-mitigations)
 - [9. Strict Local-Lab Safety Controls](#9-strict-local-lab-safety-controls)
 - [10. Automated Safety Verification Suite](#10-automated-safety-verification-suite)
-- [11. Comprehensive Viva Voce Preparation](#11-comprehensive-viva-voce-preparation)
-- [12. 2–3 Minute Video Demonstration Script](#12-23-minute-video-demonstration-script)
-- [13. Ready-to-Submit Repository Verification](#13-ready-to-submit-repository-verification)
+
 
 ---
 
